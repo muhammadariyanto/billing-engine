@@ -19,7 +19,7 @@ func (s *billingService) CreateSchedule(ctx context.Context, loanID string, star
 
 	// Generate billing schedule by loan period (assume period in weekly)
 	for i := 0; i < loan.Period; i++ {
-		date := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, time.UTC)
+		date := time.Date(startDate.Year(), startDate.Month(), startDate.Day(), 0, 0, 0, 0, startDate.Location())
 
 		// We assume only apply weekly period
 		weeklyDuration := 7 * 24 * time.Hour

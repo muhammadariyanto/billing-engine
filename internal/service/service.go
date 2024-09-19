@@ -19,5 +19,5 @@ type ILoanService interface {
 
 type ICustomerService interface {
 	Register(ctx context.Context, customer *customerModel.Customer) error
-	IsDelinquent(ctx context.Context, customerID string) bool
+	IsDelinquent(ctx context.Context, customerID string) (bool, error)
 }

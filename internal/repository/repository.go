@@ -16,11 +16,13 @@ type ILoanRepository interface {
 	Insert(ctx context.Context, loan *loanModel.Loan) error
 	FindByID(ctx context.Context, loanID string) (*loanModel.Loan, error)
 	Update(ctx context.Context, loan *loanModel.Loan) error
+	FetchUncompletedByCustomerID(ctx context.Context, customerID string) ([]*loanModel.Loan, error)
 }
 
 type IBillingRepository interface {
 	Insert(ctx context.Context, billing *billingModel.Billing) error
 	FetchAllByLoanID(ctx context.Context, loanID string) ([]*billingModel.Billing, error)
+	FetchUnpaidByLoanID(ctx context.Context, loanID string) ([]*billingModel.Billing, error)
 	Update(ctx context.Context, billing *billingModel.Billing) error
 	SumUnpaidByLoanID(ctx context.Context, loanID string) float64
 }

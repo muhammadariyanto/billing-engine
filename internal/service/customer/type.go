@@ -6,11 +6,19 @@ import (
 )
 
 type customerService struct {
-	customerRepo repository.ICustomerRepository
+	customerRepository repository.ICustomerRepository
+	loanRepository     repository.ILoanRepository
+	billingRepository  repository.IBillingRepository
 }
 
-func New(customerRepo repository.ICustomerRepository) service.ICustomerService {
+func New(
+	customerRepository repository.ICustomerRepository,
+	loanRepository repository.ILoanRepository,
+	billingRepository repository.IBillingRepository,
+) service.ICustomerService {
 	return &customerService{
-		customerRepo: customerRepo,
+		customerRepository: customerRepository,
+		loanRepository:     loanRepository,
+		billingRepository:  billingRepository,
 	}
 }

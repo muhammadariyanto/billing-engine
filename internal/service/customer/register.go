@@ -6,5 +6,5 @@ import (
 )
 
 func (s *customerService) Register(ctx context.Context, customer *customerModel.Customer) error {
-	return s.customerRepo.Insert(ctx, customer)
+	return s.customerRepository.Insert(ctx, customer)
 }

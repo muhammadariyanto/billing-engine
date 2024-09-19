@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/muhammadariyanto/billing-engine/constant"
-	billingModel "github.com/muhammadariyanto/billing-engine/internal/model/billing"
 	"time"
 )
 
@@ -21,19 +20,13 @@ func (s *billingService) MakePayment(ctx context.Context, loanID string, payment
 	}
 
 	// Fetch all schedule (sort by sequence)
-	billings, err := s.billingRepository.FetchAllByLoanID(ctx, loanID)
+	billings, err := s.billingRepository.FetchUnpaidByLoanID(ctx, loanID)
 	if err != nil {
 		return err
 	}
 
-	// Select billing to pay
-	billingToPay := &billingModel.Billing{}
-	for _, billing := range billings {
-		if billing.PaymentDate == nil {
-			billingToPay = billing
-			break
-		}
-	}
+	// Select first billing to pay
+	billingToPay := billings[0]
 
 	// Return if paymentAmount is not match
 	if billingToPay.TotalAmount != paymentAmount {

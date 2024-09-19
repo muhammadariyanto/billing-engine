@@ -3,7 +3,6 @@ package service_test
 import (
 	"context"
 	"fmt"
-	loanService "github.com/muhammadariyanto/billing-engine/internal/service/loan"
 	"testing"
 	"time"
 
@@ -17,6 +16,8 @@ import (
 	customerRepository "github.com/muhammadariyanto/billing-engine/internal/repository/customer"
 	loanRepository "github.com/muhammadariyanto/billing-engine/internal/repository/loan"
 	billingService "github.com/muhammadariyanto/billing-engine/internal/service/billing"
+	customerService "github.com/muhammadariyanto/billing-engine/internal/service/customer"
+	loanService "github.com/muhammadariyanto/billing-engine/internal/service/loan"
 )
 
 func TestIntegration_CreateSchedule(t *testing.T) {
@@ -283,5 +284,84 @@ func TestIntegration_GetOutstanding(t *testing.T) {
 			}
 		})
 	}
+}
 
+func TestIntegration_IsDelinquent(t *testing.T) {
+	ctx := context.Background()
+
+	customerRepo := customerRepository.New()
+	billingRepo := billingRepository.New()
+	loanRepo := loanRepository.New()
+	billingSvc := billingService.New(billingRepo, loanRepo)
+	customerSvc := customerService.New(customerRepo, loanRepo, billingRepo)
+
+	validCustomer := &customerModel.Customer{
+		ID:   uuid.NewString(),
+		Name: "John Doe",
+	}
+	_ = customerRepo.Insert(ctx, validCustomer)
+
+	validCustomer2 := &customerModel.Customer{
+		ID:   uuid.NewString(),
+		Name: "Gabriella",
+	}
+	_ = customerRepo.Insert(ctx, validCustomer2)
+
+	validLoanID := uuid.NewString()
+	validLoanID2 := uuid.NewString()
+
+	testCases := []struct {
+		name         string
+		customerID   string
+		setupMock    func()
+		isDelinquent bool
+	}{
+		{
+			name:       "SUCCESS: Customer is delinquent",
+			customerID: validCustomer.ID,
+			setupMock: func() {
+				_ = loanRepo.Insert(ctx, &loanModel.Loan{
+					ID:           validLoanID,
+					CustomerID:   validCustomer.ID,
+					Name:         "Loan 1",
+					Period:       50,
+					Amount:       5_000_000.00,
+					InterestRate: 0.1,
+					TotalAmount:  5_000_000.00 + (5_000_000.00 * 0.1),
+					Status:       constant.LoanStatusInProgress,
+				})
+
+				_ = billingSvc.CreateSchedule(ctx, validLoanID, time.Now().Add(-3*7*24*time.Hour)) // 3 weeks ago
+			},
+			isDelinquent: true,
+		},
+		{
+			name:       "SUCCESS: Customer is not delinquent",
+			customerID: validCustomer2.ID,
+			setupMock: func() {
+				_ = loanRepo.Insert(ctx, &loanModel.Loan{
+					ID:           validLoanID2,
+					CustomerID:   validCustomer2.ID,
+					Name:         "Loan 2",
+					Period:       50,
+					Amount:       5_000_000.00,
+					InterestRate: 0.1,
+					TotalAmount:  5_000_000.00 + (5_000_000.00 * 0.1),
+					Status:       constant.LoanStatusInProgress,
+				})
+
+				_ = billingSvc.CreateSchedule(ctx, validLoanID2, time.Now())
+			},
+			isDelinquent: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.setupMock()
+
+			isDelinquent, _ := customerSvc.IsDelinquent(ctx, tc.customerID)
+			assert.Equal(t, tc.isDelinquent, isDelinquent)
+		})
+	}
 }
