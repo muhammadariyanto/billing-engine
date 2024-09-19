@@ -15,6 +15,7 @@ type ICustomerRepository interface {
 type ILoanRepository interface {
 	Insert(ctx context.Context, loan *loanModel.Loan) error
 	FindByID(ctx context.Context, loanID string) (*loanModel.Loan, error)
+	Update(ctx context.Context, loan *loanModel.Loan) error
 }
 
 type IBillingRepository interface {

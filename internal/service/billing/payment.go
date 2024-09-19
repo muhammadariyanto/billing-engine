@@ -44,5 +44,17 @@ func (s *billingService) MakePayment(ctx context.Context, loanID string, payment
 	billingToPay.PaymentDate = &paymentDate
 
 	// Update billing
-	return s.billingRepository.Update(ctx, billingToPay)
+	if err := s.billingRepository.Update(ctx, billingToPay); err != nil {
+		return err
+	}
+
+	// If last payment then update loan status
+	if billingToPay.Sequence == loan.Period {
+		loan.Status = constant.LoanStatusCompleted
+		if err := s.loanRepository.Update(ctx, loan); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
