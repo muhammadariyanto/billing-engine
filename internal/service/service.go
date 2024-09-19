@@ -14,7 +14,7 @@ type IBillingService interface {
 
 type ILoanService interface {
 	CreateLoan(ctx context.Context, loan *loanModel.Loan) error
-	GetOutstanding(ctx context.Context, loanID string) float64
+	GetOutstanding(ctx context.Context, loanID string) (float64, error)
 }
 
 type ICustomerService interface {

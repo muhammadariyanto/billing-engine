@@ -22,4 +22,5 @@ type IBillingRepository interface {
 	Insert(ctx context.Context, billing *billingModel.Billing) error
 	FetchAllByLoanID(ctx context.Context, loanID string) ([]*billingModel.Billing, error)
 	Update(ctx context.Context, billing *billingModel.Billing) error
+	SumUnpaidByLoanID(ctx context.Context, loanID string) float64
 }

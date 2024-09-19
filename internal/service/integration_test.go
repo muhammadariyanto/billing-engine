@@ -3,6 +3,7 @@ package service_test
 import (
 	"context"
 	"fmt"
+	loanService "github.com/muhammadariyanto/billing-engine/internal/service/loan"
 	"testing"
 	"time"
 
@@ -191,6 +192,94 @@ func TestIntegration_MakePayment(t *testing.T) {
 
 				firstBilling := billings[0]
 				assert.NotEmpty(t, firstBilling.PaymentDate)
+			}
+		})
+	}
+
+}
+
+func TestIntegration_GetOutstanding(t *testing.T) {
+	ctx := context.Background()
+
+	customerRepo := customerRepository.New()
+	billingRepo := billingRepository.New()
+	loanRepo := loanRepository.New()
+	billingSvc := billingService.New(billingRepo, loanRepo)
+	loanSvc := loanService.New(loanRepo, customerRepo, billingRepo)
+
+	validCustomer := &customerModel.Customer{
+		ID:   uuid.NewString(),
+		Name: "John Doe",
+	}
+	_ = customerRepo.Insert(ctx, validCustomer)
+
+	validLoanID1 := uuid.NewString()
+	validLoanID2 := uuid.NewString()
+
+	testCases := []struct {
+		name                string
+		wantErr             bool
+		loanID              string
+		setupMock           func()
+		expectedOutstanding float64
+	}{
+		{
+			name:      "ERROR: Outstanding balance is 0 because loan is not found",
+			wantErr:   true,
+			setupMock: func() {},
+		},
+		{
+			name:    "SUCCESS: Outstanding balance is 0 because loan already completed",
+			wantErr: false,
+			loanID:  validLoanID1,
+			setupMock: func() {
+				_ = loanRepo.Insert(ctx, &loanModel.Loan{
+					ID:           validLoanID1,
+					CustomerID:   validCustomer.ID,
+					Name:         "Loan 1",
+					Period:       50,
+					Amount:       5_000_000.00,
+					InterestRate: 0.1,
+					TotalAmount:  5_000_000.00 + (5_000_000.00 * 0.1),
+					Status:       constant.LoanStatusCompleted,
+				})
+			},
+			expectedOutstanding: 0.00,
+		},
+		{
+			name:    "SUCCESS: Successfully get outstanding balance after make payment for the first billing",
+			wantErr: false,
+			loanID:  validLoanID2,
+			setupMock: func() {
+				_ = loanRepo.Insert(ctx, &loanModel.Loan{
+					ID:           validLoanID2,
+					CustomerID:   validCustomer.ID,
+					Name:         "Loan 2",
+					Period:       50,
+					Amount:       5_000_000.00,
+					InterestRate: 0.1,
+					TotalAmount:  5_000_000.00 + (5_000_000.00 * 0.1),
+					Status:       constant.LoanStatusInProgress,
+				})
+
+				_ = billingSvc.CreateSchedule(ctx, validLoanID2, time.Now())
+			},
+			expectedOutstanding: 5_500_000 - 110_000,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.setupMock()
+			err := billingSvc.MakePayment(ctx, tc.loanID, 110_000.00, time.Now())
+			outstandingBalance, err := loanSvc.GetOutstanding(ctx, tc.loanID)
+
+			if tc.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+
+				assert.Equal(t, tc.expectedOutstanding, outstandingBalance)
 			}
 		})
 	}
