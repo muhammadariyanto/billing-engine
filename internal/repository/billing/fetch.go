@@ -16,7 +16,7 @@ func (r *billingRepository) FetchAllByLoanID(ctx context.Context, loanID string)
 	}
 
 	if len(resp) == 0 {
-		return nil, errors.New("data is not found")
+		return nil, errors.New("billing data is not found")
 	}
 
 	// Order by sequence
@@ -36,7 +36,7 @@ func (r *billingRepository) FetchUnpaidByLoanID(ctx context.Context, loanID stri
 	}
 
 	if len(resp) == 0 {
-		return nil, errors.New("data is not found")
+		return nil, errors.New("loan data is not found")
 	}
 
 	// Order by sequence

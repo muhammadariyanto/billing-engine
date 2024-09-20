@@ -16,7 +16,7 @@ func (r *loanRepository) FetchUncompletedByCustomerID(ctx context.Context, custo
 	}
 
 	if len(resp) == 0 {
-		return nil, errors.New("data is not found")
+		return nil, errors.New("loan data is not found")
 	}
 
 	return resp, nil
