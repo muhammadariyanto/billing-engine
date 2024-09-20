@@ -19,7 +19,7 @@ func (s *billingService) MakePayment(ctx context.Context, loanID string, payment
 		return fmt.Errorf("cannot proceed: loan with ID %s has already been completed or is no longer in progress", loan.ID)
 	}
 
-	// Fetch all schedule (sort by sequence)
+	// Fetch unpaid schedule (sort by sequence)
 	billings, err := s.billingRepository.FetchUnpaidByLoanID(ctx, loanID)
 	if err != nil {
 		return err

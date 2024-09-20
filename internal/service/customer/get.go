@@ -31,7 +31,7 @@ func (s *customerService) IsDelinquent(ctx context.Context, customerID string) (
 				countDueBilling += 1
 			}
 
-			if countDueBilling > MaxAllowedDueBilling {
+			if countDueBilling >= MaxAllowedDueBilling {
 				return true, nil
 			}
 		}
