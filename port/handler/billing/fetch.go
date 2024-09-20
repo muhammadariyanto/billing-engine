@@ -1,4 +1,4 @@
-package loanHandler
+package billingHandler
 
 import (
 	"errors"
@@ -8,20 +8,19 @@ import (
 	"net/http"
 )
 
-func (h *loanHandler) GetOutstanding(w http.ResponseWriter, r *http.Request) {
+func (h *billingHandler) FetchAllByLoanID(w http.ResponseWriter, r *http.Request) {
 	loanID := chi.URLParam(r, "id")
 	if err := uuid.Validate(loanID); err != nil {
 		response.SendResponseError(w, http.StatusBadRequest, errors.New("loan id is required"))
 		return
 	}
 
-	outstanding, err := h.loanSvc.GetOutstanding(r.Context(), loanID)
+	// Fetch all schedule
+	billings, err := h.billingSvc.FetchAllByLoanID(r.Context(), loanID)
 	if err != nil {
 		response.SendResponseError(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	response.SendResponseOK(w, map[string]any{
-		"outstanding": outstanding,
-	})
+	response.SendResponseOK(w, billings)
 }

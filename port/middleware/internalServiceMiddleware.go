@@ -12,11 +12,6 @@ func InternalServiceMiddleware(config *config.Config) func(next http.Handler) ht
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// check internal api key
 			internalApiKey := r.Header.Get("INTERNAL-API-KEY")
-			if internalApiKey == "" {
-
-				return
-			}
-
 			if config.InternalApiKey != internalApiKey {
 				response.SendResponseError(w, http.StatusUnauthorized, errors.New("unauthorized"))
 				return

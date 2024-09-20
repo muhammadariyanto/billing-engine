@@ -43,11 +43,16 @@ func NewRouter(module RouterModule) http.Handler {
 
 		r.Route("/loan", func(r chi.Router) {
 			r.Post("/apply", module.LoanHandler.Create)
-			r.Get("/outstanding", module.LoanHandler.GetOutstanding)
+			r.Get("/{id}/outstanding", module.LoanHandler.GetOutstanding)
 		})
 
 		r.Route("/billing", func(r chi.Router) {
-			r.Post("/payment", module.BillingHandler.MakePayment)
+			r.Get("/loan/{id}", module.BillingHandler.FetchAllByLoanID)
+
+			r.Group(func(r chi.Router) {
+				r.Use(customMiddleware.IdempotencyMiddleware())
+				r.Post("/payment", module.BillingHandler.MakePayment)
+			})
 		})
 	})
 

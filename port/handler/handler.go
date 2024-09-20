@@ -1,6 +1,8 @@
 package handler
 
-import "net/http"
+import (
+	"net/http"
+)
 
 type ICustomerHandler interface {
 	Register(w http.ResponseWriter, r *http.Request)
@@ -14,4 +16,5 @@ type ILoanHandler interface {
 
 type IBillingHandler interface {
 	MakePayment(w http.ResponseWriter, r *http.Request)
+	FetchAllByLoanID(w http.ResponseWriter, r *http.Request)
 }
