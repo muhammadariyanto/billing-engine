@@ -16,7 +16,7 @@ func (h *customerHandler) IsDelinquent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	isDelinquent, err := h.customerSvc.IsDelinquent(r.Context(), customerID)
-	if err != nil {
+	if err != nil && err.Error() != "loan data is not found" {
 		response.SendResponseError(w, http.StatusInternalServerError, err)
 		return
 	}
