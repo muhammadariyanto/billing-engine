@@ -3,6 +3,7 @@ package billingService
 import (
 	"context"
 	billingModel "github.com/muhammadariyanto/billing-engine/internal/model/billing"
+	"sync"
 	"time"
 )
 
@@ -16,6 +17,10 @@ func (s *billingService) CreateSchedule(ctx context.Context, loanID string, star
 	// Calculate amount and interest value per period
 	amount := loan.Amount / float64(loan.Period)
 	interest := amount * loan.InterestRate
+
+	// Use goroutine instead
+	wg := sync.WaitGroup{}
+	wg.Add(loan.Period)
 
 	// Generate billing schedule by loan period (assume period in weekly)
 	for i := 0; i < loan.Period; i++ {
@@ -36,11 +41,17 @@ func (s *billingService) CreateSchedule(ctx context.Context, loanID string, star
 		}
 
 		// Insert billing schedule, skip on error, it should be use db transaction in real use.
-		_ = s.billingRepository.Insert(ctx, billing)
+		go func() {
+			defer wg.Done()
+
+			_ = s.billingRepository.Insert(ctx, billing)
+		}()
 
 		// Set startDate with a week forward
 		startDate = startDate.Add(weeklyDuration)
 	}
+
+	wg.Wait()
 
 	return nil
 }

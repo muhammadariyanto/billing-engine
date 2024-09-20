@@ -2,7 +2,6 @@ package customerService
 
 import (
 	"context"
-	"fmt"
 	"time"
 )
 
@@ -28,8 +27,6 @@ func (s *customerService) IsDelinquent(ctx context.Context, customerID string) (
 		}
 
 		for _, billing := range billings {
-			fmt.Println(billing.DueDate, time.Now())
-
 			if billing.DueDate.Before(time.Now()) {
 				countDueBilling += 1
 			}

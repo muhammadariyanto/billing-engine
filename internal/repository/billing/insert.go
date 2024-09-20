@@ -9,6 +9,9 @@ import (
 )
 
 func (r *billingRepository) Insert(ctx context.Context, billing *billingModel.Billing) error {
+	r.mu.Lock()         // Lock before writing
+	defer r.mu.Unlock() // Unlock after writing
+
 	if billing.ID == "" {
 		billing.ID = uuid.NewString()
 	}
