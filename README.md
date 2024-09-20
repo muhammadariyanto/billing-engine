@@ -3,6 +3,8 @@
 ## Overview
 This service is designed to handle the core functionality of a billing engine. It processes loan and billing schedule for each loan.
 
+For a detailed explanation of the process, refer to the [Sequence Diagram Process](./docs/sequence_diagram.md).
+
 ## How to Run
 
 1. **Configuration Setup**:
